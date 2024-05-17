@@ -4,7 +4,6 @@ output:
   html_document:
     df_print: paged
 ---
-
 ```{r}
 setwd("~/Documents/GitHub/tfg/Datos y formulas")
 source("Rfunctions.R")
@@ -145,6 +144,10 @@ tfg$Employed <- as.factor(tfg$Employed)
 tfg$HaveWorkedWith <- as.character(tfg$HaveWorkedWith)
 
 str(tfg)
+```
+```{r}
+write.csv(tfg, "stackoverflow_full", row.names = FALSE)
+
 ```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
