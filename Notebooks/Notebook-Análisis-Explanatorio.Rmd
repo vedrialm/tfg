@@ -3,6 +3,13 @@ title: "Analisis Explanatorio"
 output: html_notebook
 ---
 ```{r}
+setwd("~/Documents/GitHub/tfg/Datos y formulas")
+source("Rfunctions.R")
+# Load the data
+tfg <- read.csv("datos_tfg.csv")
+str(tfg)
+```
+```{r}
 # tablas de distribución
 tabla <- list()
 

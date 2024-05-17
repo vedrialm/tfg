@@ -146,7 +146,8 @@ tfg$HaveWorkedWith <- as.character(tfg$HaveWorkedWith)
 str(tfg)
 ```
 ```{r}
-write.csv(tfg, "stackoverflow_full", row.names = FALSE)
+setwd("~/Documents/GitHub/tfg/Datos y formulas")
+write.csv(tfg, "datos_tfg.csv", row.names = FALSE)
 
 ```
 
