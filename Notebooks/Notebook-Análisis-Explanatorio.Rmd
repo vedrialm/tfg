@@ -1,0 +1,150 @@
+---
+title: "Analisis Explanatorio"
+output: html_notebook
+---
+```{r}
+# tablas de distribución
+tabla <- list()
+
+# Loop sobre cada columna del dataframe
+for (col in names(tfg)) {
+  # Verificar si la columna es un factor
+  if (is.factor(tfg[[col]])) {
+    # Calcular la distribución de frecuencia en porcentaje
+    porcentaje <- prop.table(table(tfg[[col]])) * 100
+    
+    # Agregar la tabla de distribución a la lista
+    tabla[[col]] <- as.data.frame(porcentaje)
+  }
+}
+
+# Visualizar las tablas de distribución
+print(tabla)
+```
+```{r}
+#piechart para todas las variables 
+# Obtener nombres de las variables que son factores
+factor_vars <- names(tfg)[sapply(tfg, is.factor)]
+
+# Crear una lista para almacenar los gráficos de pastel
+pie_charts <- list()
+
+# Iterar sobre cada variable que es factor
+for (var in factor_vars) {
+  # Contar las frecuencias de las categorías
+  var_counts <- table(tfg[[var]])
+  
+  # Crear un dataframe con los datos
+  var_data <- data.frame(Category = names(var_counts), Count = as.vector(var_counts))
+  
+  # Crear el gráfico de pastel
+  pie_chart <- ggplot(var_data, aes(x = "", y = Count, fill = Category)) +
+    geom_bar(stat = "identity", width = 1) +
+    coord_polar(theta = "y") +
+    theme_void() +
+    geom_text(aes(label = paste0(round(Count/sum(Count) * 100, 1), "%")), position = position_stack(vjust = 0.5)) +
+    scale_fill_manual(values = rainbow(length(var_counts))) +  # Cambia el esquema de color si deseas
+    ggtitle(paste("Distribution of", var)) +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  # Agregar el gráfico de pastel a la lista
+  pie_charts[[var]] <- pie_chart
+}
+
+# Imprimir los gráficos de pastel
+for (pie_chart in pie_charts) {
+  print(pie_chart)
+}
+
+```
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+
+# Obtener nombres de las variables que son factores
+factor_vars <- names(tfg)[sapply(tfg, is.factor)]
+
+# Crear una lista para almacenar los gráficos de pastel
+women_pie_charts <- list()
+men_pie_charts <- list()
+
+# Iterar sobre cada variable que es factor
+for (var in factor_vars) {
+  # Filtrar datos por género
+  women_data <- tfg %>% filter(Gender == "Woman")
+  men_data <- tfg %>% filter(Gender == "Man")
+  
+  # Contar las frecuencias de las categorías para mujeres y hombres
+  women_var_counts <- table(women_data[[var]])
+  men_var_counts <- table(men_data[[var]])
+  
+  # Crear dataframes con los datos
+  women_var_data <- data.frame(Category = names(women_var_counts), Count = as.vector(women_var_counts))
+  men_var_data <- data.frame(Category = names(men_var_counts), Count = as.vector(men_var_counts))
+  
+  # Crear los gráficos de pastel para mujeres y hombres
+  women_pie_chart <- ggplot(women_var_data, aes(x = "", y = Count, fill = Category)) +
+    geom_bar(stat = "identity", width = 1) +
+    coord_polar(theta = "y") +
+    theme_void() +
+    geom_text(aes(label = paste0(round(Count/sum(Count) * 100, 1), "%")), position = position_stack(vjust = 0.5)) +
+    scale_fill_manual(values = rainbow(length(women_var_counts))) +  # Cambia el esquema de color si deseas
+    ggtitle(paste("Distribución de", var, "en mujeres")) +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  men_pie_chart <- ggplot(men_var_data, aes(x = "", y = Count, fill = Category)) +
+    geom_bar(stat = "identity", width = 1) +
+    coord_polar(theta = "y") +
+    theme_void() +
+    geom_text(aes(label = paste0(round(Count/sum(Count) * 100, 1), "%")), position = position_stack(vjust = 0.5)) +
+    scale_fill_manual(values = rainbow(length(men_var_counts))) +  # Cambia el esquema de color si deseas
+    ggtitle(paste("Distribución de", var, "en hombres")) +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  # Agregar los gráficos de pastel a las listas
+  women_pie_charts[[var]] <- women_pie_chart
+  men_pie_charts[[var]] <- men_pie_chart
+}
+
+# Imprimir los gráficos de pastel de mujeres
+for (pie_chart in men_pie_charts) {
+  print(pie_chart)
+}
+
+```
+```{r}
+# Imprimir los gráficos de pastel mujeres
+for (pie_chart in women_pie_charts) {
+  print(pie_chart)
+}
+```
+```{r}
+# Probabilidad de ser contratado
+employed_prob <- sum(tfg$Employed == 1) / nrow(tfg)
+women_employed_prob <- sum((tfg$Employed == 1)[tfg$Gender == 'Woman']) / sum(tfg$Gender == 'Woman')
+men_employed_prob <- sum((tfg$Employed == 1)[tfg$Gender == 'Man']) / sum(tfg$Gender == 'Man')
+
+# Display the probabilities
+data.frame(
+  Probability = c("P(Employed)", "P(Woman and Employed)", "P(Man and Employed)"),
+  Probability_Value = c(employed_prob, women_employed_prob, men_employed_prob)
+)
+```
+```{r}
+# Create a loop to generate the bar plots
+for (var in factor_vars) {
+  bar_plots <- cc_barplot(Data = tfg, "Employed", var, freq = "relfreq")
+  print(bar_plots)
+}
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

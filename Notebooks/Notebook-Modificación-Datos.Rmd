@@ -1,0 +1,154 @@
+---
+title: "Modificación Datos"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+setwd("~/Documents/GitHub/tfg/Datos y formulas")
+source("Rfunctions.R")
+# Load the data
+tfg <- read.csv("stackoverflow_full.csv")
+# Recall main properties
+str(tfg)
+library(dplyr)
+```
+
+```{r}
+#Check for missing values 
+missing_values <- colSums(is.na(tfg))
+print(missing_values)
+```
+
+```{r}
+#Crear nuevas columnas 
+top_skills <- list(
+  SQL = c("SQL", "sql", "$SQL", "\\b\\w*SQL\\b"),
+  python = c("python", "Python", "py"),
+  java = c("javascript", "Java", "\\b\\w*Java\\b"),
+  c_plus_plus =  c("c++", "C++", "\\b\\w*C\\b"),
+  cloud = c("\\b\\w*Cloud\\b", "AWS", "Cloud Services", "Azure", "Google Cloud Platform", "Oracle", "IBM")
+)
+
+# Function to check if any of the skill words are present in the text
+check_skill <- function(text, skill_words) {
+  any(sapply(skill_words, function(skill_word) grepl(paste0("\\b", gsub("\\+", "\\\\+", skill_word), "\\b"), tolower(text), ignore.case = TRUE)))
+}
+
+# Loop through each candidate row
+for (i in 1:nrow(tfg)) {
+  # Initialize new columns for each skill
+  for (skill_name in names(top_skills)) {
+    tfg[i, skill_name] <- as.integer(check_skill(tfg[i, "HaveWorkedWith"], top_skills[[skill_name]]))
+  }
+}
+
+top_skillslist <- c("SQL","python", "java", "c_plus_plus", "cloud")
+topskills_list <- tfg %>% select(all_of(top_skillslist))
+
+tfg$SQL <- as.factor(tfg$SQL)
+tfg$python <- as.factor(tfg$python)
+tfg$java <- as.factor(tfg$java)
+tfg$c_plus_plus <- as.factor(tfg$c_plus_plus)
+tfg$cloud <- as.factor(tfg$cloud)
+```
+
+```{r}
+#convertir pais en continente
+unique_countries <- unique(tfg$Country)
+unique_countries
+
+# Check for unique values in the 'Country' column
+unique_countries <- unique(tfg$Country)
+
+# Define a function to segment countries into continents
+segment_country <- function(country) {
+   if (country %in% c("United States of America", "Canada", "Mexico")) {
+    return("NorthAmerica")
+  } else if (country %in% c("United Kingdom of Great Britain and Northern Ireland", "France", "Germany", "Spain", "Italy", "Portugal", "Belgium", "Netherlands", "Austria", "Switzerland", "Denmark", "Ireland", "Norway", "Sweden", "Finland", "Greece", "Czech Republic", "Slovakia", "Hungary", "Poland", "Russian Federation")) {
+    return("Europe")
+  } else if (country %in% c("Brazil", "Argentina", "Chile", "Colombia", "Peru", "Venezuela, Bolivarian Republic of...", "Bolivia", "Ecuador", "Guyana", "Paraguay", "Suriname", "Uruguay")) {
+    return("SouthAmerica")
+  } else if (country %in% c("China", "Japan", "South Korea", "Viet Nam", "India", "Sri Lanka", "Pakistan", "Bangladesh", "Indonesia", "Malaysia", "Philippines", "Taiwan", "Thailand", "Cambodia", "Myanmar", "Laos", "Singapore", "Hong Kong (S.A.R.)", "Afghanistan", "Bahrain", "Iran, Islamic Republic of...", "Iraq", "Israel", "Jordan", "Kazakhstan", "Kuwait", "Kyrgyzstan", "Lao People's Democratic Republic", "Lebanon", "Maldives", "Mongolia", "Nepal", "North Korea", "Oman", "Qatar", "Saudi Arabia", "Syria", "Tajikistan", "Timor-Leste", "Turkey", "Turkmenistan", "United Arab Emirates", "Uzbekistan", "Yemen")) {
+    return("Asia")
+  } else if (country %in% c("Australia", "New Zealand", "Fiji", "Papua New Guinea", "Solomon Islands", "Vanuatu", "Samoa", "Tonga", "Kiribati", "Marshall Islands", "Micronesia, Federated States of", "Nauru", "Palau", "Tuvalu")) {
+    return("Oceania")
+  } else if (country %in% c("Egypt", "South Africa", "Nigeria", "Algeria", "Morocco", "Kenya", "Ghana", "Angola", "Sudan", "Tunisia", "Mauritius", "Mauritania", "Seychelles", "Cape Verde", "Madagascar", "Botswana", "Zambia", "Zimbabwe", "Uganda", "Malawi", "Namibia", "Lesotho", "Liberia", "Sierra Leone", "Mali", "Guinea", "Senegal", "Gambia", "Benin", "Burkina Faso", "Togo", "Ivory Coast", "Gabon", "Cameroon", "Niger", "Chad", "Central African Republic", "Somalia", "Ethiopia", "Djibouti", "Eritrea", "Mozambique", "Comoros", "Rwanda", "Burundi", "Tanzania", "Congo, Republic of the...", "Democratic Republic of the Congo", "Equatorial Guinea", "Sao Tome and Principe", "Cabo Verde", "Sierra Leone", "Grenada", "Barbados", "Jamaica", "Haiti", "Cuba", "Dominican Republic", "Haiti", "Trinidad and Tobago", "Bahamas", "Antigua and Barbuda", "Saint Lucia", "Saint Vincent and the Grenadines", "Grenada", "Dominica", "Saint Kitts and Nevis", "Guyana", "Suriname", "French Guiana")){
+    return("Africa")
+  } else {
+    return("Other")
+  }
+}
+# Create a new column 'Continent'
+tfg$Continent <- sapply(tfg$Country, segment_country)
+```
+
+```{r}
+# Obtener el conteo de los continentes
+continent_counts <- table(tfg$Continent)
+
+# Crear un data frame con los datos
+continent_data <- data.frame(Continent = names(continent_counts),
+                             Count = as.vector(continent_counts))
+
+# Crear el pie chart con ggplot2
+pie_chart <- ggplot(continent_data, aes(x = "", y = Count, fill = Continent)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar(theta = "y") +
+  theme_void() +
+  geom_text(aes(label = paste0(round(Count/sum(Count) * 100, 1), "%")), position = position_stack(vjust = 0.5)) +
+  scale_fill_manual(values = c('skyblue', 'lightcoral', 'lightgreen', 'lightgray', 'lightpink', 'lightyellow','violet')) +
+  ggtitle("Distribution of Countries by Continent") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Mostrar el pie chart
+print(pie_chart)
+```
+
+```{r}
+#proporcion de datos en genero
+# numero de genero 
+gender_counts <- table(tfg$Gender)
+
+# Crear un data frame con los datos
+gender_data <- data.frame(Gender = names(gender_counts),
+                             Count = as.vector(gender_counts))
+pie_chart_gender <- ggplot(gender_data, aes(x = "", y = Count, fill = Gender)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar(theta = "y") +
+  theme_void() +
+  geom_text(aes(label = paste0(round(Count/sum(Count) * 100, 1), "%")), position = position_stack(vjust = 0.5)) +
+  scale_fill_manual(values = c('skyblue', 'lightcoral', 'lightgreen')) +
+  ggtitle("Distribution of Gender") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+print(pie_chart_gender)
+```
+
+```{r}
+tfg <- subset(tfg, tfg$Gender != "NonBinary")
+tfg$Gender <- as.factor(tfg$Gender)
+levels(tfg$Gender)
+```
+
+```{r}
+#datatypes
+for (col in names(tfg)) {
+  if (is.character(tfg[[col]])) {
+    tfg[[col]] <- as.factor(tfg[[col]])
+  }
+}
+
+tfg$Employment <- as.factor(tfg$Employment)
+tfg$Employed <- as.factor(tfg$Employed)
+tfg$HaveWorkedWith <- as.character(tfg$HaveWorkedWith)
+
+str(tfg)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
