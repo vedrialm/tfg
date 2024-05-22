@@ -1,0 +1,9 @@
+---
+title: "Modelo LOGIT"
+output: html_notebook
+---
+```{r}
+#crear un TRAIN (70)-TEST(30) SPLIT 
+```
+
+

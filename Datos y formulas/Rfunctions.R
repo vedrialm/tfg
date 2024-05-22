@@ -80,7 +80,7 @@ cc_barplot <- function(Data,x,y, freq = "condProb") {
   }
 }
 
-cc_hist <- function(Data, x, y, freq = "cond", breaks = "Sturges") {
+cc_hist <- function(Data,x,y, freq="cond", breaks="Sturges") {
   # class label column
   Y <- Data[[y]]
   if (is.factor(Y)) {
@@ -91,45 +91,48 @@ cc_hist <- function(Data, x, y, freq = "cond", breaks = "Sturges") {
   # Predictor column
   X <- Data[[x]]
   
-  rangeX <- c(min(X), max(X))
-  rangeY <- c(0, 0)
+  #browser()
+  rangeX <- c(min(X),max(X))
+  rangeY <- c(0,0)
   
   out <- list()
   # Compute relative frequencies
   for (i in 1:length(l)) {
-    out[[i]] <- hist(X[Y == l[i]], plot = FALSE, breaks = breaks)
+    out[[i]] <- hist(X[Y==l[i]], plot=FALSE, breaks=breaks)
     
-    if (freq == "cond") {
-      out[[i]]$counts = out[[i]]$counts / sum(out[[i]]$counts)
+    if (freq=="cond") {
+      out[[i]]$counts = out[[i]]$counts/sum(out[[i]]$counts)
     }
     
-    if (max(out[[i]]$counts) > rangeY[2]) {
+    if (max(out[[i]]$counts) > rangeY[2]) { 
       rangeY[2] = max(out[[i]]$counts)
     }
   }
   
   if (freq == "cond") {
-    yl <- "Relative Frequency of Conditional Distribution"
-    fr <- TRUE
-  } else if (freq == "freq") {
-    yl <- "Frequency"
-    fr <- TRUE
+    yl = "Relative Frequency of Conditional Distribution"
+    fr = TRUE
+  } else if (freq=="freq") {
+    yl = "Frequency" 
+    fr = TRUE
   } else {
-    yl <- "Density"
-    fr <- FALSE
+    yl = "Density" 
+    fr = FALSE
   }
   
-  plot(out[[1]], freq = fr, xlim = rangeX, ylim = rangeY, col = rgb(1, 0, 0, 0.5), cex = 2.5, 
-       main = paste("Histogram of", x, "conditional on", y), ylab = yl, xlab = x)
+  # Define colors for each class
+  colors <- c(rgb(1,0,0,0.5), rgb(0,0,1,0.5))
   
-  for (i in 2:length(l)) {
-    plot(out[[i]], freq = fr, add = TRUE, xlim = rangeX, ylim = rangeY, 
-         col = rgb(runif(1), runif(1), runif(1), 0.5), cex = 2.5)
-  }
+  # Plot the first histogram
+  plot(out[[1]], freq=fr, xlim=rangeX, ylim=rangeY, col=colors[1], cex=2.5,
+       main= paste("Histogram of",x,"conditional on",y), ylab=yl,xlab=x)
   
-  legend("topright", l, lty = rep(1, length(l)), lwd = rep(5, length(l)), 
-         col = sapply(1:length(l), function(i) rgb(runif(1), runif(1), runif(1), 0.5)))
+  # Plot the second histogram
+  plot(out[[2]], freq=fr, add=TRUE, xlim=rangeX, ylim=rangeY, col=colors[2], cex=2.5)
+  
+  legend("topright", l, lty=c(1,1), lwd=c(5,5), col=colors)
 }
+
 
 ### Boxplot
 cc_boxplot <- function(Data,x,y) {

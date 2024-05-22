@@ -147,8 +147,7 @@ str(tfg)
 ```
 ```{r}
 setwd("~/Documents/GitHub/tfg/Datos y formulas")
-write.csv(tfg, "datos_tfg.csv", row.names = FALSE)
-
+write.csv(tfg, "~/Documents/GitHub/tfg/Datos y formulas/datos_tfg.csv", row.names = FALSE)
 ```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.

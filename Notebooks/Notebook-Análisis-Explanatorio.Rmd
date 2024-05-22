@@ -7,8 +7,28 @@ setwd("~/Documents/GitHub/tfg/Datos y formulas")
 source("Rfunctions.R")
 # Load the data
 tfg <- read.csv("datos_tfg.csv")
+#datatypes
+for (col in names(tfg)) {
+  if (is.character(tfg[[col]])) {
+    tfg[[col]] <- as.factor(tfg[[col]])
+  }
+}
+tfg$SQL <- as.factor(tfg$SQL)
+tfg$python <- as.factor(tfg$python)
+tfg$java <- as.factor(tfg$java)
+tfg$c_plus_plus <- as.factor(tfg$c_plus_plus)
+tfg$cloud <- as.factor(tfg$cloud)
+tfg$Country <- NULL
+tfg$Employment <- as.factor(tfg$Employment)
+tfg$Employed <- as.factor(tfg$Employed)
+tfg$HaveWorkedWith <- as.character(tfg$HaveWorkedWith)
 str(tfg)
 ```
+
+```{r}
+summary(tfg)
+```
+
 ```{r}
 # tablas de distribución
 tabla <- list()
@@ -28,6 +48,7 @@ for (col in names(tfg)) {
 # Visualizar las tablas de distribución
 print(tabla)
 ```
+
 ```{r}
 #piechart para todas las variables 
 # Obtener nombres de las variables que son factores
@@ -148,10 +169,218 @@ for (var in factor_vars) {
 }
 
 ```
+```{r}
+# Create a loop to generate the bar plots
+for (var in factor_vars) {
+  bar_plots <- cc_barplot(Data = tfg, var, "Employed", freq = "relfreq")
+  print(bar_plots)
+}
+```
+```{r}
+hist(PreviousSalary, breaks = 20, col="lightblue", main="PreviousSalary", xlab="")
+hist(ComputerSkills, breaks = 20, col="lightpink", main="ComputerSkills", xlab="")
+hist(YearsCode, breaks = 20, col="orange", main="YearsCode", xlab="")
+hist(YearsCodePro, breaks = 20, col="darkorange", main="YearsCodePro", xlab="")
+```
+```{r}
+cc_hist(tfg,"PreviousSalary", "Employed", breaks=20)
+cc_hist(tfg,"ComputerSkills", "Employed", breaks=20)
+cc_hist(tfg,"YearsCode", "Employed", breaks=20)
+cc_hist(tfg,"YearsCodePro", "Employed", breaks=20)
+```
+```{r}
+cc_hist(tfg,"PreviousSalary", "MainBranch", breaks=20)
+cc_hist(tfg,"PreviousSalary", "java", breaks=20)
+cc_hist(tfg,"PreviousSalary", "SQL", breaks=20)
+cc_hist(tfg,"PreviousSalary", "python", breaks=20)
+cc_hist(tfg,"PreviousSalary", "c_plus_plus", breaks=20)
+cc_hist(tfg,"PreviousSalary", "cloud", breaks=20)
+```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+```{r}
+cc_hist(tfg,"PreviousSalary", "Gender", breaks=20)
+cc_hist(tfg,"ComputerSkills", "Gender", breaks=20)
+cc_hist(tfg,"YearsCode", "Gender", breaks=20)
+cc_hist(tfg,"YearsCodePro", "Gender", breaks=20)
+```
+```{r}
+plot(ComputerSkills, YearsCode, col=Employed)
+plot(ComputerSkills, YearsCodePro, col=Employed)
+```
+```{r}
+densityplot(~ PreviousSalary, data = tfg, groups = Continent, auto.key=TRUE)
+densityplot(~ ComputerSkills, data = tfg, groups = Continent, auto.key=TRUE)
+densityplot(~ ComputerSkills, data = tfg, groups = Gender, auto.key=TRUE)
+densityplot(~ PreviousSalary, data = tfg, groups = EdLevel, auto.key=TRUE)
+densityplot(~ ComputerSkills, data = tfg, groups = EdLevel, auto.key=TRUE)
+```
+```{r}
+#identifing outliers 
+boxplot(ComputerSkills, col = "green",notch = TRUE)
+boxplot(PreviousSalary, col = "darkblue",notch = TRUE)
+boxplot(YearsCode, col = "red",notch = TRUE)
+```
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```{r}
+# Obtener nombres de las variables que son numericas
+integer_vars <- names(tfg)[sapply(tfg, is.integer)]
+integer_vars <- integer_vars[2:4]
+str(integer_vars)
+
+
+#CORRELACIONES ENTRE VARIABLES 
+# convertir variables a numeros 
+tfg1 <- tfg
+for (var in factor_vars) {
+  tfg1[, var] <- as.numeric(factor(tfg[, var]))-1
+}
+
+# Convert integer columns to numeric
+for (var in integer_vars) {
+  tfg1[, var] <- tfg[, var]
+}
+
+str(tfg1)
+# Calculate the correlation matrix
+tfg1$HaveWorkedWith <- NULL
+tfg1$X <- NULL
+tfg1$Country <- NULL
+str(tfg1)
+
+```
+
+
+```{r}
+#realizar t-test para valores numericos y chi2 para valores categoricos  
+library(stats)
+# Loop through the categorical variables and perform Chi-squared tests
+T <- table(tfg$Gender,tfg$Employed)
+T
+#H0 --> no existe diferencia entre mujer y hombre 
+chisq.test(T)
+# p-value < 5%, null hypothesis can be rejected. significant association between the two variables.
+```
+```{r}
+# Diferencia entre developers 
+T <- table(tfg$MainBranch,tfg$Employed)
+T
+#H0 --> no existe diferencia
+chisq.test(T)
+# p-value < 5%, null hypothesis can be rejected. significant association between the two variables.
+```
+
+```{r}
+# Diferencia entre developers 
+T <- table(tfg$MainBranch,tfg$Gender)
+T
+#H0 --> no existe diferencia entre mujer y hombre 
+chisq.test(T)
+# p-value < 5%, null hypothesis can be rejected. significant association between the two variables.
+```
+```{r}
+# Diferencia entre tech skills cloud  
+T <- table(tfg$cloud,tfg$Gender)
+T
+#H0 --> no existe diferencia entre mujer y hombre 
+chisq.test(T)
+```
+
+```{r}
+# Diferencia entre tech skills cloud  
+T <- table(tfg$cloud,tfg$Employed)
+T
+#H0 --> no existe diferencia entre mujer y hombre 
+chisq.test(T)
+```
+
+```{r}
+# Estimate linear regression
+linear.model <- lm(tfg1$Employed ~ tfg1$Gender)
+# Visualise data
+plot( tfg1$Gender, tfg1$Employed)
+# Visualise fitted linear regresion
+abline(linear.model, col="red")
+```
+```{r}
+# Estimate linear regression
+linear.model <- lm(tfg1$Employed ~ tfg1$ComputerSkills)
+# Visualise data
+plot(tfg1$ComputerSkills, tfg1$Employed)
+# Visualise fitted linear regresion
+abline(linear.model, col="red")
+```
+```{r}
+# Estimate linear regression
+linear.model <- lm(tfg1$Employed ~ tfg1$MainBranch)
+# Visualise data
+plot(tfg1$MainBranch, tfg1$Employed)
+# Visualise fitted linear regresion
+abline(linear.model, col="red")
+```
+```{r}
+#WEIGHTS AND INFORMATION VALUE 
+require(Information)
+# Create a Boolean variable that is TRUE when defaulted="No"
+# (this choice is important as will be discussed later)
+y <- tfg1$Employed == 0 #ESTAMOS CONSIDERANDO LA VARIABLE COMO NOT EMPLOYED 
+
+# Multiplying by 1 renders y a numerical variable
+y <- 1*y
+
+# Creation/ addition of new variable called "class" in data.frame
+tfg1["class"] <- y
+
+# remove Employed
+tfg1$Employed <- NULL
+IV <- create_infotables(data=tfg1, y="class", bins = 5)
+IV
+#Odds positivos significa que los odds de no ser contratado siendo mujer es mayor a los odds de la poblacion 
+#mientras que los odds negativos significan que eres mas probable en ser contratado si eres hombre 
+```
+```{r}
+#WEIGHTS AND INFORMATION VALUE 
+require(Information)
+# Create a Boolean variable that is TRUE when defaulted="No"
+# (this choice is important as will be discussed later)
+y <- tfg1$Employed == 1 #ESTAMOS CONSIDERANDO LA VARIABLE EMPLOYED (CONTRATADO)
+
+# Multiplying by 1 renders y a numerical variable
+y <- 1*y
+
+# Creation/ addition of new variable called "class" in data.frame
+tfg1["class"] <- y
+
+# remove Employed
+tfg1$Employed <- NULL
+IV <- create_infotables(data=tfg1, y="class", bins = 5)
+IV
+#Odds positivos significa que los odds de no ser contratado siendo mujer es mayor a los odds de la poblacion 
+#mientras que los odds negativos significan que eres mas probable en ser contratado si eres hombre 
+```
+
+```{r}
+# funcion para eliminar outliers en base al IQR 
+remove_outliers_iqr <- function(data, column_name) {
+  Q1 <- quantile(data[[column_name]], 0.25)
+  Q3 <- quantile(data[[column_name]], 0.75)
+  IQR <- Q3 - Q1
+  lower_bound <- Q1 - 1.5 * IQR
+  upper_bound <- Q3 + 1.5 * IQR
+  data <- data[data[[column_name]] >= lower_bound & data[[column_name]] <= upper_bound, ]
+  return(data)
+}
+
+# Remove outliers in 'YearsCode', 'PreviousSalary,' and 'ComputerSkills'
+tfg1 <- remove_outliers_iqr(tfg1, "YearsCode")
+tfg1 <- remove_outliers_iqr(tfg1, "PreviousSalary")
+tfg1 <- remove_outliers_iqr(tfg1, "ComputerSkills")
+#OBSERVACIONES = 66958
+
+```
+
+```{r}
+setwd("~/Documents/GitHub/tfg/Datos y formulas")
+write.csv(tfg1, "~/Documents/GitHub/tfg/Datos y formulas/datos_logit.csv", row.names = FALSE)
+```
 
