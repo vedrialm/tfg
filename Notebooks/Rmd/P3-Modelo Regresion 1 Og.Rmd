@@ -4,9 +4,9 @@ output: html_notebook
 ---
 ```{r}
 #crear un TRAIN (70)-TEST(30) SPLIT 
-setwd("~/Documents/GitHub/tfg/Datos y formulas")
+#setwd("~/Documents/GitHub/tfg/Datos y formulas")
 df_logit <- read.csv("datos_logit.csv")
-source("Rfunctions.R")
+#source("Rfunctions.R")
 
 df_logit$YearsCode <- as.numeric(df_logit$YearsCode)
 df_logit$YearsCodePro <- as.numeric(df_logit$YearsCodePro)
@@ -82,21 +82,6 @@ str(trainSet2)
 log.model_og <- glm(class ~ ., data = trainSet2, family = binomial)
 # Summary of estimated logistic regression model
 summary(log.model_og)
-```
-```{r}
-# First plot the observations (as points)
-trainSet2$Gender <- as.integer(trainSet2$Gender)-1
-plot(trainSet2$Gender, trainSet2$class)
-# To plot the estimated probability first define a vector x that
-# takes values in the range of "gender"
-z <- seq(from = min(trainSet2$Gender), to=max(trainSet2$Gender))
-# obtain estimated coefficients using the coef() function
-hat.beta.g <- coef(log.model_og)
-lines(z, (1 + exp(-hat.beta.g[1] - hat.beta.g[2]*z))^(-1), col="blue")
-abline(h=0.5, col="green")
-# Plot partition of input space
-# (straight "v"ertical line)
-abline(v=-hat.beta.g[1]/hat.beta.g[2], col="red")
 ```
 ```{r}
 # Compute the estimated probability of default for all the data in testSet2

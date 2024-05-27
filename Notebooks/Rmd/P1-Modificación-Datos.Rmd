@@ -5,10 +5,10 @@ output:
     df_print: paged
 ---
 ```{r}
-setwd("~/Documents/GitHub/tfg/Datos y formulas")
-source("Rfunctions.R")
+#setwd("~/Documents/GitHub/tfg/Datos y formulas")
+source("/tfg/Datos y formulas/Rfunctions.R")
 # Load the data
-tfg <- read.csv("stackoverflow_full.csv")
+tfg <- read.csv("/tfg/Datos y formulas/stackoverflow_full.csv")
 # Recall main properties
 str(tfg)
 library(dplyr)
@@ -146,8 +146,8 @@ tfg$HaveWorkedWith <- as.character(tfg$HaveWorkedWith)
 str(tfg)
 ```
 ```{r}
-setwd("~/Documents/GitHub/tfg/Datos y formulas")
-write.csv(tfg, "~/Documents/GitHub/tfg/Datos y formulas/datos_tfg.csv", row.names = FALSE)
+#setwd("~/Documents/GitHub/tfg/Datos y formulas")
+write.csv(tfg, "datos_tfg.csv", row.names = FALSE)
 ```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.

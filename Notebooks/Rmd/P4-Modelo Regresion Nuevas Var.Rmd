@@ -1,12 +1,14 @@
 ---
-title: "Modelo Regresion - variables conjunto original"
+title: "Modelo Regresion 2"
 output: html_notebook
 ---
 ```{r}
 #crear un TRAIN (70)-TEST(30) SPLIT 
-setwd("~/Documents/GitHub/tfg/Datos y formulas")
-df_logit <- read.csv("datos_logit.csv")
-source("Rfunctions.R")
+#setwd("~/Documents/GitHub/tfg/Datos y formulas")
+
+#df_logit = añadiendo variables skills 
+#df_logic2 = sin skills 
+df_logit <- read.csv("/Users/amelie/Desktop/tfg Barbie/r/tfg/Datos y formulas/datos_logit.csv")
 
 df_logit$YearsCode <- as.numeric(df_logit$YearsCode)
 df_logit$YearsCodePro <- as.numeric(df_logit$YearsCodePro)
@@ -18,24 +20,15 @@ for (col in names(df_logit)) {
     df_logit[[col]] <- as.factor(df_logit[[col]])
   }
 }
-df_logit2 <- df_logit
+str(df_logit)
 
-df_logit2$c_plus_plus <- NULL
-df_logit2$java <- NULL
-df_logit2$cloud <- NULL
-df_logit2$python <- NULL
-df_logit2$SQL <- NULL
-
-str(df_logit2)
 ```
 
-
-
-```{r}
+```{r} 
 library(caTools)
 # 1 paso: Definir variable independiente 
-X2 <- df_logit2[, -which(colnames(df_logit2) == "class")] #todas var menos Employed 
-y2 <- df_logit2$class
+X <- df_logit[, -which(colnames(df_logit) == "class")] #todas var menos Employed 
+y <- df_logit$class
 
 
 # 2 paso: dividir  data en training and testing sets
@@ -43,69 +36,59 @@ y2 <- df_logit2$class
 set.seed(42)
 
 # Dividir los datos utilizando sample.split en base a 'y'
-split2 <- sample.split(y2, SplitRatio = 0.7)
+split <- sample.split(y, SplitRatio = 0.8)
 
 # Crear conjuntos de entrenamiento y prueba
-X_train2 <- X2[split2, ]
-X_test2 <- X2[!split2, ]
-y_train2 <- y2[split2]
-y_test2 <- y2[!split2]
+X_train <- X[split, ]
+X_test <- X[!split, ]
+y_train <- y[split]
+y_test <- y[!split]
 
 
 # Crear dataframes de entrenamiento y prueba combinados
-trainSet2 <- data.frame(X_train2, class = y_train2)
-testSet2 <- data.frame(X_test2, class = y_test2)
+trainSet <- data.frame(X_train, Employed = y_train)
+testSet <- data.frame(X_test, Employed = y_test)
 
 # Print the size of the training set
-print(paste("Training set size:", nrow(X_train2)))
+print(paste("Training set size:", nrow(X_train)))
 
 # Print the size of the testing set
-print(paste("Testing set size:", nrow(X_test2)))
-
+print(paste("Testing set size:", nrow(X_test)))
 ```
-
 ```{r}
 # Create a Boolean variable that is TRUE when Employed="Yes"
 # (this choice is important as will be discussed later)
-y2 <- trainSet2$class == 1 
+y <- trainSet$Employed == 1 
 # Multiplying by 1 renders y a numerical variable
-y2 <- 1*y2
-class(y2)
+y <- 1*y
+class(y)
 
 # Creation/ addition of new variable called "class" in data.frame
-trainSet2["class"] <- y2
+trainSet["class"] <- y
 # Verify new variable has been created
-str(trainSet2)
+str(trainSet)
+
+trainSet$Employed <- NULL
+
 ```
+
 ```{r}
-#logistic regression model solo con variables originales  
-log.model_og <- glm(class ~ ., data = trainSet2, family = binomial)
+# Fit logistic regression model solo con genero 
+model_new_vars <- glm(class ~ ., data = trainSet, family = binomial)
 # Summary of estimated logistic regression model
-summary(log.model_og)
+summary(model_new_vars)
+
 ```
-```{r}
-# First plot the observations (as points)
-trainSet2$Gender <- as.integer(trainSet2$Gender)-1
-plot(trainSet2$Gender, trainSet2$class)
-# To plot the estimated probability first define a vector x that
-# takes values in the range of "gender"
-z <- seq(from = min(trainSet2$Gender), to=max(trainSet2$Gender))
-# obtain estimated coefficients using the coef() function
-hat.beta.g <- coef(log.model_og)
-lines(z, (1 + exp(-hat.beta.g[1] - hat.beta.g[2]*z))^(-1), col="blue")
-abline(h=0.5, col="green")
-# Plot partition of input space
-# (straight "v"ertical line)
-abline(v=-hat.beta.g[1]/hat.beta.g[2], col="red")
-```
+
+
 ```{r}
 # Compute the estimated probability of default for all the data in testSet2
-probs <- predict(log.model_og, newdata = testSet2, type="response")
+probs <- predict(model_new_vars, newdata = testSet, type="response")
 # Predict class 1 (i.e. Employed=Yes) if estimated probability > 0.5
 class.pred <- ifelse(probs > 0.5, 1, 0)
 
 # Create truth table: Rows represent actual class, Columns represent predicted
-truth.table <- table(testSet2$class, class.pred)
+truth.table <- table(testSet$Employed, class.pred)
 
 # Convert confusion matrix to dataframe
 cm_lr_df <- as.data.frame(truth.table)
@@ -121,16 +104,18 @@ ggplot(data = cm_lr_df, aes(x = Predicted, y = Actual, fill = Count)) +
   labs(x = "Predicted", y = "Actual", title = "Logistic Regression - Confusion Matrix") +
   theme_minimal()
 
+```
+```{r}
 #EVALUAR MODELO EN TERMINOS DE GENERO 
 # Calcular la matriz de confusión por género
 # Para hombres
 # Filtrar datos para hombres
-men <- subset(testSet2, Gender == 0)
-probs_men <- predict(log.model_og, newdata = men, type="response")
+men <- subset(testSet, Gender == 0)
+probs_men <- predict(model_new_vars, newdata = men, type="response")
 class.pred_men <- ifelse(probs_men > 0.5, 1, 0)
 
 # Create truth table for men
-truth.table_men <- table(men$class, class.pred_men)
+truth.table_men <- table(men$Employed, class.pred_men)
 
 # Convert confusion matrix to dataframe
 cm_lr_men_df <- as.data.frame(truth.table_men)
@@ -143,14 +128,15 @@ ggplot(data = cm_lr_men_df, aes(x = Predicted, y = Actual, fill = Count)) +
   scale_fill_gradient(low = "lightgreen", high = "darkgreen") +
   labs(x = "Predicted", y = "Actual", title = "Logistic Regression - Confusion Matrix (Men)") +
   theme_minimal()
+
 #PARA MUJERES
 # Filtrar datos para mujeres
-women <- subset(testSet2, Gender == 1)
-probs_women <- predict(log.model_og, newdata = women, type="response")
+women <- subset(testSet, Gender == 1)
+probs_women <- predict(model_new_vars, newdata = women, type="response")
 class.pred_women <- ifelse(probs_women > 0.5, 1, 0)
 
 # Create truth table for women
-truth.table_women <- table(women$class, class.pred_women)
+truth.table_women <- table(women$Employed, class.pred_women)
 
 # Convert confusion matrix to dataframe
 cm_lr_women_df <- as.data.frame(truth.table_women)
@@ -164,11 +150,10 @@ ggplot(data = cm_lr_women_df, aes(x = Predicted, y = Actual, fill = Count)) +
   labs(x = "Predicted", y = "Actual", title = "Logistic Regression - Confusion Matrix (Women)") +
   theme_minimal()
 
-
 ```
 ```{r}
 # Calcular la matriz de confusión para hombres
-confusion_matrix_men <- table(men$class, class.pred_men)
+confusion_matrix_men <- table(men$Employed, class.pred_men)
 
 # Calcular FPR y FNR
 TN_men <- confusion_matrix_men[1, 1]
@@ -183,7 +168,7 @@ cat("Tasa de falsos positivos para hombres:", FPR_men, "\n")
 cat("Tasa de falsos negativos para hombres:", FNR_men, "\n")
 
 # Calcular la matriz de confusión para mujeres
-confusion_matrix_women <- table(women$class, class.pred_women)
+confusion_matrix_women <- table(women$Employed, class.pred_women)
 
 # Calcular FPR y FNR
 TN_women <- confusion_matrix_women[1, 1]
@@ -198,17 +183,16 @@ cat("Tasa de falsos positivos para mujeres:", FPR_women, "\n")
 cat("Tasa de falsos negativos para mujeres:", FNR_women, "\n")
 
 ```
-
 ```{r}
 # Para la población completa
-roc_all <- roc(testSet2$class, probs)
+roc_all <- roc(testSet$Employed, probs)
 
 # ROC curve for men
-roc_men <- roc(men$class, probs_men)
+roc_men <- roc(men$Employed, probs_men)
 
 
 # ROC curve for women
-roc_women <- roc(women$class, probs_women)
+roc_women <- roc(women$Employed, probs_women)
 
 
 # Plot ROC curves for men and women in the same plot
@@ -225,7 +209,5 @@ cat("Área bajo la curva (AUC) para hombres:", auc_men, "\n")
 auc_women <- auc(roc_women)
 cat("Área bajo la curva (AUC) para mujeres:", auc_women, "\n")
 
-
 ```
-
 

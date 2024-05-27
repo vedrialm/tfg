@@ -1,12 +1,11 @@
 ---
 title: "Analisis Explanatorio"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 ```{r}
-setwd("~/Documents/GitHub/tfg/Datos y formulas")
-source("Rfunctions.R")
-require(lattice)
-require(ggplot2)
+
 # Load the data
 tfg <- read.csv("datos_tfg.csv")
 #datatypes
@@ -29,7 +28,6 @@ str(tfg)
 
 ```{r}
 summary(tfg)
-attach(tfg)
 ```
 
 ```{r}
@@ -180,10 +178,10 @@ for (var in factor_vars) {
 }
 ```
 ```{r}
-hist(tfg$PreviousSalary, breaks = 20, col="lightblue", main="PreviousSalary", xlab="")
-hist(tfg$ComputerSkills, breaks = 20, col="lightpink", main="ComputerSkills", xlab="")
-hist(tfg$YearsCode, breaks = 20, col="orange", main="YearsCode", xlab="")
-hist(tfg$YearsCodePro, breaks = 20, col="darkorange", main="YearsCodePro", xlab="")
+hist(PreviousSalary, breaks = 20, col="lightblue", main="PreviousSalary", xlab="")
+hist(ComputerSkills, breaks = 20, col="lightpink", main="ComputerSkills", xlab="")
+hist(YearsCode, breaks = 20, col="orange", main="YearsCode", xlab="")
+hist(YearsCodePro, breaks = 20, col="darkorange", main="YearsCodePro", xlab="")
 ```
 ```{r}
 cc_hist(tfg,"PreviousSalary", "Employed", breaks=20)
@@ -207,8 +205,8 @@ cc_hist(tfg,"YearsCode", "Gender", breaks=20)
 cc_hist(tfg,"YearsCodePro", "Gender", breaks=20)
 ```
 ```{r}
-plot(tfg$ComputerSkills, tfg$YearsCode, col=tfg$Gender)
-plot(tfg$ComputerSkills, tfg$YearsCodePro, col=tfg$Employed)
+plot(ComputerSkills, YearsCode, col=Employed)
+plot(ComputerSkills, YearsCodePro, col=Employed)
 ```
 ```{r}
 densityplot(~ PreviousSalary, data = tfg, groups = Continent, auto.key=TRUE)
@@ -258,7 +256,7 @@ str(tfg1)
 #realizar t-test para valores numericos y chi2 para valores categoricos  
 library(stats)
 # Loop through the categorical variables and perform Chi-squared tests
-T <- table(tfg$EdLevel,tfg$Employed)
+T <- table(tfg$Gender,tfg$Employed)
 T
 #H0 --> no existe diferencia entre mujer y hombre 
 chisq.test(T)
@@ -266,7 +264,7 @@ chisq.test(T)
 ```
 ```{r}
 # Diferencia entre developers 
-T <- table(tfg$Continent,tfg$Employed)
+T <- table(tfg$MainBranch,tfg$Employed)
 T
 #H0 --> no existe diferencia
 chisq.test(T)
@@ -346,7 +344,7 @@ IV
 require(Information)
 # Create a Boolean variable that is TRUE when defaulted="No"
 # (this choice is important as will be discussed later)
-y <- tfg1$Employed == 1 #ESTAMOS CONSIDERANDO LA VARIABLE EMPLOYED (CONTRATADO)
+y <- tfg1$class == 1 #ESTAMOS CONSIDERANDO LA VARIABLE EMPLOYED (CONTRATADO)
 
 # Multiplying by 1 renders y a numerical variable
 y <- 1*y
@@ -383,6 +381,7 @@ tfg1 <- remove_outliers_iqr(tfg1, "ComputerSkills")
 ```
 
 ```{r}
-setwd("~/Documents/GitHub/tfg/Datos y formulas")
-write.csv(tfg1, "~/Documents/GitHub/tfg/Datos y formulas/datos_logit.csv", row.names = FALSE)
+#setwd("tfg/Datos y formulas")
+write.csv(tfg1, "datos_logit.csv", row.names = FALSE)
 ```
+
